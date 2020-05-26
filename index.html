@@ -1,0 +1,207 @@
+<!Doctype html>
+
+<html>
+    <head>
+        <link rel="icon" href="sun.png" type="image/png" sizes="16x16">
+        <meta charset="utf-8">
+        <title>Weather App|JS</title>
+        <style type="text/css">
+        
+            body{
+/*                background: #f6f6f6;*/
+/*                background: url(back.jpg);*/
+                background-image: url(background.jpg);
+                background-repeat: no-repeat;
+                background-size: cover;
+                color: #000000;
+                text-align: center;
+            }
+            
+            .container{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            }
+            
+            .input-fields{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            
+            .input-fields input, .input-fields button{
+                outline: none;
+                border: none;
+                background: #fff;
+                height: 50px;
+                padding: 0 30px;
+                font-family: sans-serif;
+                font-size: 18px;
+                line-height: 1.2;
+/*                box-shadow: 1px 3px 3px 4px #eee;*/
+                margin-bottom: 20px;
+                transition: all 0.4s;
+                border-radius: 20px;
+            }
+            
+            .input-fields input: focus{
+                padding: 0 40px;
+            }
+            
+            .input-fields button{
+                cursor: pointer;
+                width: 140px;
+                background: #827ffe;
+                color: #ffffff;
+            }
+            
+            .input-fields button:hover{
+                width: 200px;
+                background: #403886;
+            }
+            
+            .card{
+                height: auto;
+                width: 350px;
+                border-radius: 20px;
+                padding: 30px;
+                background: #ffffff;
+/*                box-shadow: 3px 5px 6px 6px #cccccc;*/
+            }
+            
+            .temperature{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 30px;
+                font-weight: bold;
+                padding: 10px 0;
+            }
+        
+            td{
+                border: 1px solid #dddddd;
+                padding: 10px;
+            }
+            
+            h1, h6{
+                color: gainsboro
+            }
+        
+        
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="input-fields">
+                <h1>Weather App</h1>
+                <h6>Just type your loaction name, or zip code</h6>
+                <input type="text" id="place" placeholder="Location / Zip code">
+                <button type="submit" onclick="getWeatherInfo();">Submit</button>
+            </div>
+            <div id="errorMessage"></div>
+            <div id="weatherInfo" class="card" style="display: none;">
+                <div><strong class="city"></strong></div>
+                <div class="temperature">
+                <img src="#">
+                    <span style="padding-left: 20px;"></span>
+                </div>
+            <table cellspacing="0" width=100%></table>
+            </div>
+        </div>
+        <script type="text/javascript">
+        
+            var apiURL = 'https://api.openweathermap.org/data/2.5/weather?appid=6404f378855a5c65d00c4215c719c15a&units=metric';
+            
+            var imageBaseURL = 'https://openweathermap.org/img/w/';
+            
+            var weatherInfo = document.getElementById("weatherInfo");
+            
+            function getWeatherInfo(){
+              
+                var place = document.getElementById('place').value.trim();
+                
+                if(isNaN(place)){
+                    ajax(apiURL + '&q=' + place);
+                } else{
+                    ajax(apiURL + '&zip=' + place);
+                }
+                
+            };
+            
+            
+            function ajax(url){
+                var request = new XMLHttpRequest();
+                
+                if(request){
+                    request.open('GET', url, true);
+                    request.send();
+                    
+                    request.onreadystatechange = function () {
+                        if(this.readyState = 4){
+                            var response = JSON.parse(this.responseText);
+                            var erorMessage = document.getElementById('errorMessage');
+                            
+                            if(this.status = 200){
+                                erorMessage.textContent = '';
+                                generateCard(response);
+                            } else {
+                                weatherInfo.style.display = 'none';
+                                erorMessage.textContent = response.message;
+                            }
+                        }
+                    };
+                }
+            };
+            
+            
+            function generateCard(response){
+                weatherInfo.style.display = 'block';
+                
+                weatherInfo.querySelector('.city').textContent = "Weather in " + response.name + ', ' + response.sys.country;
+                
+                weatherInfo.querySelector('.temperature img').src = imageBaseURL + response.weather[0].icon + '.png';
+                
+                weatherInfo.querySelector('.temperature span').innerHTML = Math.round(response.main.temp) + '&deg;' + 'C';
+                
+                var table = weatherInfo.querySelector('table');
+                table.innerHTML = '';
+                
+                table.appendChild(generateRow('Wind', response.wind.speed + 'm/s, ' + response.wind.deg + 'degree'));
+                table.appendChild(generateRow('Cloudiness', response.weather[0].description));
+                table.appendChild(generateRow('Pressure', response.main.pressure + ' hpa'));
+                table.appendChild(generateRow('Humidity', response.main.humidity + ' %'));
+                table.appendChild(generateRow('Geo coords', response.coord.lon + ', ' + response.coord.lat));
+                                  
+                table.appendChild(generateRow('Sunrise', extractTime(response.sys.sunrise)));
+                table.appendChild(generateRow('Sunset', extractTime(response.sys.sunset)));
+            };
+            
+            function generateRow(value1, value2){
+                var row = document.createElement('tr');
+                row.appendChild(generateColumn(value1));
+                row.appendChild(generateColumn(value2));
+                return row;
+            };
+            
+            function  generateColumn(value){
+                var column = document.createElement('td');
+                column.textContent = value;
+                return column;
+            
+            };
+            
+            function extractTime(timestamp){
+                var date = new Date(timestamp * 1000);
+                var h = date.getHours() % 12;
+                var m = date.getMinutes();
+                
+                return ((h < 10?'0' + h:h ) + ':' + (m < 10?'0'+ m:m));
+            }
+            
+            
+        
+        </script>
+    </body>
+</html>
